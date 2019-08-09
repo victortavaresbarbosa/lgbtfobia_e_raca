@@ -1,6 +1,7 @@
 ##################################################################################
 ################### Analise de dados - trabalho final ############################
 ###################          Victor Tavares           ############################
+###################            2019.1                 ############################
 ##################################################################################
 
 # --------------------------------------------------------------------------------
@@ -9,7 +10,7 @@
 #                      violencia durante os contextos eleitoral e pos-eleitoral?
 
 
-# H0: A questÃ£a racial nao influenciou nos numeros de vitimas de violencia durante
+# H0: A questao racial nao influenciou nos numeros de vitimas de violencia durante
 #     os contextos eleitoral e pos-eleitoral.
 
 #HA: Pessoas LGBTs negras foram as maiores vitimas de violencia durante os contextos
@@ -27,20 +28,30 @@
 
 # ----------------------------------------------------------------------------------
 
+# Instalando bibliotecas
+
+install.packages("sandwich")
+install.packages("lmtest") 
+install.packages(c('sjPlot','sjmisc'))
+
 # Importante bibliotecas uteis para o decorrer do trabalho
 
 library(readxl)
 library(stringr)
 library(ggplot2)
 library(car)
-library(ggpubr)
-if(!require(devtools)) install.packages("devtools")
-install.packages("tidyselect")
+library(stargazer)
+library(sandwich)
+library(lmtest)
+library(sjPlot)
+library(sjmisc)
+
+
 # -----------------------------------------------------------------------------------
 
 # Carregando a base de dados ####
 
-base <- read_xlsx("C:/Users/DELL/Documents/2019.1/victor_tavares_ad_final/basededados_victor_tavares.xlsx", 1)
+base <- read_xlsx("C:/Users/DELL/Documents/2019.1/victor_tavares_ad_final/Dados_Abertos_Violencia_LGBT+nas Eleicoes.xlsx", 1)
 
 # Observando se a base foi importada corretamente
 
@@ -153,6 +164,8 @@ nova_base$raca <- ifelse(nova_base$raca %in% c("preta", "parda"), 1, 0)
 
 table(nova_base$raca) # confirmando
 
+class(nova_base$raca)
+
 
 # Transformando a variavel orientacao ####  -------------------------------------------------------------
 
@@ -205,7 +218,7 @@ class(nova_base$genero) # confirmando a transformacao de tipo
 
 # Grafico de cada variável 
 
-# Grafico 1 para a variavel raca mostrando a quantidade de cada elemento -----------------------
+# (figura) Grafico  para a variavel raca mostrando a quantidade de cada elemento -----------------------
 
 table(base$raca) # observando a tabela no console para preencher o data.frame
 
@@ -216,10 +229,10 @@ teste.raca <- data.frame(rotulos = c("amarela", "branca", "indigena", "outra", "
 ggplot(teste.raca, aes(y = frequencia, x = rotulos)) + # componenetes basicos do grafico
  geom_histogram(colour = "black", fill="black", width=.8, stat="identity") +
                xlab("Raça/cor da pele") + ylab("Frequência") +
-               ggtitle("Gráfico 1: raça/cor da pele")
+               ggtitle("Figura 11: raça/cor da pele")
 
 
-# Grafico 2 de barras para a varivael dummy raca -----------------------------------------------------
+# (figura) Gráfico de barras para a varivael dummy raca -----------------------------------------------------
 
 table(nova_base$raca) #visualizando
 
@@ -231,9 +244,9 @@ g.raca <- data.frame(raça = c("Não-negros", "negros"), # rotulos das barras
 
 ggplot(g.raca, aes(y = frequencia, x = raça)) + # componenetes basicos do grafico
   geom_bar(stat = "identity") +   #  stat = "identity" por padrao
-  ggtitle("Gráfico 2: negros e não-negros")
+  ggtitle("Figura 12: negros e não-negros")
 
-# Graficos 13 de barras empilhadas (vitimizacao vs raca) associação #### -------------------------------------------------------
+# (Figura 4) Graficos de barras empilhadas (vitimizacao vs raca) associação #### -------------------------------------------------------
 
 t.raca.vit <- table(nova_base$raca,nova_base$vitimizacao) # salvando tabela de frequencia conjunta das variaveis
 
@@ -261,12 +274,12 @@ ggplot(g.raca.vit, aes(y = frequencia, # frequencia das barras
                        fill = vitima)) + # nome da divisoria das barras
   geom_bar(stat = 'identity') + 
   labs(y = "Frequência", x = "", fill = "Vitimização") + #alterando os rotulos
-  ggtitle("Gráfico 13: Vitimização associada à raça") +
+  ggtitle("Figura 4: Vitimização associada à raça") +
   geom_hline(yintercept = 0.5)
   
 
 
-# grafico 11 de variavel numerica (frequencia de vitimizacao) ---------------------------------------------------------------
+# (figura 2) Grafico de variavel numerica frequencia de vitimizacao ---------------------------------------------------------------
 
 # construindo um dataframe separado
 t.vitimizacao <-table(nova_base$frequencia_vitimizacao)
@@ -280,9 +293,9 @@ g.vitimizacao$rotulos <- reorder(g.vitimizacao$rotulos, g.vitimizacao$ordem)
 ggplot(g.vitimizacao, aes(y = frequencia, x = rotulos)) + 
   geom_histogram(colour = "black", fill="red4", width=.8, stat="identity") +
   xlab("Frequência de vitimização") + ylab("Quantidade") +
-  ggtitle("Gráfico 11: Freqência de vitimização")
+  ggtitle("Figura 2: Freqência de vitimização")
 
-# Grafico 10 para vitimizacao ##### ---------------------------------------------------------------------------
+# (figura 1) Grafico  para vitimizacao ##### ---------------------------------------------------------------------------
 
 t.vit <- table(nova_base$vitimizacao)
 
@@ -294,9 +307,9 @@ g.vit$rotulos <- reorder(g.vit$rotulos, g.vit$ordem)
 
 ggplot(g.vit, aes(y = frequencia, x = rotulos)) + 
   geom_histogram(colour = "black", fill="blue", width=.8, stat="identity") +
-  ggtitle("Gráfico 10: Vitimização")
+  ggtitle("Figura 1: Vitimização")
 
-# Grafico 7 da variavel numerica (renda) ----------------------------------------------------------------
+# (figura 8) Grafico  da variavel numerica renda ----------------------------------------------------------------
 
 t.renda <- table(base$renda)  # foi usada os dados da "base" e não "nova_base" uma vez que em "base"
                               # ainda nao havia sido feita a transformacao dos dados pro modelo
@@ -309,9 +322,9 @@ g.renda$rotulos <- reorder(g.renda$rotulos, g.renda$ordem)
 
 ggplot(g.renda, aes(y = renda, x = rotulos)) +
   geom_histogram(stat = "identity") +
-  ggtitle("Gráfico 7: Distribuição de renda")
+  ggtitle("Figura 8: Distribuição de renda")
 
-# Grafico 4 da variavel genero --------------------------------------------------------------------
+# (figura 14) Graficoda variavel genero --------------------------------------------------------------------
 
 t.genero <- table(base$genero) # foi usada os dados da "base" e não "nova_base" uma vez que em "base"
                                # ainda nao havia sido feita a transformacao dos dados pro modelo
@@ -323,9 +336,9 @@ g.genero <- data.frame(rotulos = names(t.genero),
 ggplot(g.genero, aes(y = quantidade, x = rotulos)) +
   geom_bar(colour = "black", fill="#E69F00", width=.8, stat="identity") +
   xlab("Gêneros") + ylab("Quantidade") +
-  ggtitle("Gráfico 4: Identidades de gênero")
+  ggtitle("Figura 14: Identidades de gênero")
 
-# Grafico 3 da variavel orientacao ----------------------------------------------------------------
+# (Figura 13) Grafico da variavel orientacao ----------------------------------------------------------------
 
 t.oriencao <- table(base$orientacao) # foi usada os dados da "base" e não "nova_base" uma vez que em "base"
                                      # ainda nao havia sido feita a transformacao dos dados pro modelo
@@ -338,10 +351,10 @@ ggplot(g.orientacao, aes(y = frequencia, x = rotulos)) +
   geom_bar(colour = "black", fill="#E69F00", width=.8, stat="identity") + 
   guides(fill=FALSE) +
   xlab("Orientações") + ylab("Quantidade") +
-  ggtitle("Gráfico 3: Orientações sexuais")
+  ggtitle("Figura 13: Orientações sexuais")
 
 
-# Grafico 5 - variavel escolaridade #### ---------------------------------------------------------------------
+# (figura 15) Grafico variavel escolaridade #### ---------------------------------------------------------------------
 
 t.escolaridade <- table(nova_base$escolaridade)
 
@@ -353,10 +366,10 @@ ggplot(gg.escolaridade, aes(y = frequencia, x = rotulos)) +
   geom_bar(colour = "black", fill="#E69F00", width=.8, stat="identity") + 
   guides(fill=FALSE) +
   xlab("Nível de estudos") + ylab("Frequência") +
-  ggtitle("Gráfico 5: Escolaridade")
+  ggtitle("Figura 15: Escolaridade")
 
 
-# Grafico de orientacao associado a vitimizacao -----------------------------------------------------
+# (figura 17) Grafico de orientacao associado a vitimizacao -----------------------------------------------------
 
 nova_base$orientacao_g <- base$orientacao # foi usada os dados da "base" e não "nova_base" uma vez que em "base"
                                           # ainda nao havia sido feita a transformacao dos dados pro modelo
@@ -381,9 +394,9 @@ g.orientacao.vit <- data.frame(orientacao = c('bissexual', 'bissexual', 'gay', '
 ggplot(g.orientacao.vit, aes(y =frequencia, x = orientacao, fill = vitima)) +
   geom_bar(stat = 'identity') +
   geom_hline(yintercept = 0.5) +
-  ggtitle("Gráfico 16: Vitimização associada à orientação")
+  ggtitle("Figura 17: Vitimização associada à orientação")
 
-# grafico 15 de renda associado a vitimizacao ----------------------------------------------------------------------------------------
+# (ficura 6) grafico de renda associado a vitimizacao ----------------------------------------------------------------------------------------
 
 nova_base$renda_g <- base$renda # foi usada os dados da "base" e não "nova_base" uma vez que em "base"
                                 # ainda nao havia sido feita a transformacao dos dados pro modelo
@@ -411,9 +424,9 @@ g.renda.vit <- data.frame(renda = c('1 a 3 S.M', "1 a 3 S.M", '3 a 5 S.M', '3 a 
 ggplot(g.renda.vit, aes(y =frequencia, x = renda, fill = vitima)) +
   geom_bar(stat = 'identity') +
   geom_hline(yintercept = 0.5) +
-  ggtitle("Gráfico 15: Vitimização associada à renda")
+  ggtitle("Figura 6: Vitimização associada à renda")
 
-# grafico 9 de renda associado a raca #### -------------------------------------------------------------------
+# (figura 10) grafico de renda associado a raca #### -------------------------------------------------------------------
 
 nova_base$renda_g <- base$renda # foi usada os dados da "base" e não "nova_base" uma vez que em "base"
 # ainda nao havia sido feita a transformacao dos dados pro modelo
@@ -439,9 +452,9 @@ g.raca.renda <- data.frame(renda = c('1 a 3 S.M', "1 a 3 S.M", '3 a 5 S.M', '3 a
 ggplot(g.raca.renda, aes(y =frequencia, x = renda, fill = raça)) +
   geom_bar(stat = 'identity') +
   geom_hline(yintercept = 0.5) +
-  ggtitle("Gráfico 9: Renda associada à raça")
+  ggtitle("Figura 10: Renda associada à raça")
 
-# grafico 6 boxplot com a variavel escolaridade ---------------------------------------------
+# (figura 16) graficoboxplot com a variavel escolaridade ---------------------------------------------
 
 g.escolaridade <- data.frame(variavel = nova_base$escolaridade)
 
@@ -449,26 +462,26 @@ g.escolaridade = na.omit(g.escolaridade) # omitir os NAS
 
 ggplot(g.escolaridade, aes(y = variavel)) +
   geom_boxplot() +
-  ggtitle("Gráfico 6: Boxplot de escolaridade")
+  ggtitle("Figura 16: Boxplot de escolaridade")
 
-# grafico 9 boxplot com a variavel renda  -----------------------------------------------------------
+# (figura 9) grafico boxplot com a variavel renda  -----------------------------------------------------------
 
 g.box.renda <- data.frame(variavel = nova_base$renda)
 
 ggplot(g.box.renda, aes(y = variavel)) +
   geom_boxplot() +
-  ggtitle("Gráfico 8: Boxplot de renda")
+  ggtitle("Figura 9: Boxplot de renda")
 
 
-## grafico 12 boxplot com frequencia de vitimizacao -------------------------------------------------
+## (figura 3)  grafico boxplot com frequencia de vitimizacao -------------------------------------------------
 
 g.frequencia <- data.frame((variavel = nova_base$frequencia_vitimizacao))
 
 ggplot(g.frequencia, aes(y= variavel)) +
   geom_boxplot(fill = '#4271AE', line = "#1F3552") +
-  ggtitle("Gráfico 12: Boxplot da Frequência de vitimização")
+  ggtitle("Figura 3: Boxplot - Frequência de vitimização")
 
-# Grafico 14 boxplot bivariado com frequencia de vitimizacao associedado a raca -----------------------------------------------
+# (figura 5) grafico boxplot bivariado com frequencia de vitimizacao associedado a raca -----------------------------------------------
 
 g.frequencia.biv <- data.frame(frequencia = nova_base$frequencia_vitimizacao,
                                raca = nova_base$raca) # criando objeto para o grafico
@@ -481,41 +494,70 @@ g.frequencia.biv <- na.omit(g.frequencia.biv) # omitindo os NAs
 
 ggplot(g.frequencia.biv, aes(y = frequencia, x= raca)) +
   geom_boxplot() +
-  ggtitle("Gráfico 14: Frequência de vitimização associada à raça")
+  ggtitle("Figura 5: Frequência de vitimização associada à raça")
 
 # Modelo de regressao ###########################################################################
 
-reg <- lm(data = nova_base, frequencia_vitimizacao ~ raca  + 
-            renda + escolaridade + factor(genero) + factor(orientacao)) # construindo o modelo da regressao 
+# O ajuste sera amarzenado no objeto reg
 
+reg <- lm(data = nova_base, frequencia_vitimizacao ~ raca * renda + 
+            escolaridade + factor(genero)+ factor(orientacao)) # construindo o modelo da regressao 
+                                                                # as variaveis categorias sao inseridas como fatores (factor)
+
+reg$coefficients # estimativas do parametro
 
 summary(reg) # resultado da regressao
 
 confint(reg) #intervalo de confiança 
 
+stargazer(reg,    # alternativa para visualizar os resultados da regressao
+          type = "text",
+          header = FALSE,
+          title = "Tabela de resultados",
+          style = "ajps",
+          p.auto = FALSE)
+
+# (figura 7)Grafico de interacao -------------------------------------------------------------------------------
+
+plot_model(reg, type = "pred", terms = c("renda", "raca")) # grafico da reg
+
+
+
+
 # Pressupostos do modelo -----------------------------------------------------------------------------------
 
 # heterosedasticidade e homocedasticidade (distruibuicao dos erros ao longo dos valores preditos) ------------------------------
+# Análise visual para homogeneidade dos resíduos (visualmente eles devem se distribuir igualmente #abaixo e acima da linha
 
-res.prev <- data.frame(residuos = residuals(reg),
+
+
+res.prev <- data.frame(residuos = residuals(reg), #criando data frame
                        previstos = predict(reg))
 
-ggplot(res.prev, aes(y = residuos, x = previstos)) +
+ggplot(res.prev, aes(y = residuos, x = previstos)) + # grafico de residuos vs preditos
   geom_point() +
   geom_abline(slope=0, intercept=0)
 
 
-plot(reg, which = 1)
+plot(reg, which = 1) #outra opcao de visualizao do grafico
+
 
 # nos valores menores esta errando pra mais, no meio errando relativamente menos e nos valores maiores ta errando pra menos
 
-# histogramama (normalidade ----------------------------------------------------------------------------------------7
+# Aplicando função sobre o modelo de regressão para diminuir a heterosedasticidade
 
-hist(residuals(reg))
+coeftest(reg,vcov. = vcovHC)
+
+# histogramama (normalidade) ----------------------------------------------------------------------------------------7
+
+hist(residuals(reg)) # histograma
+
+plot(reg, which = 2) # grafico de normal q-q
 
 
-shapiro.test(reg$residuals)
-
+shapiro.test(reg$residuals) # (valores de p > 0,05 indicam dados normais)
+                            # no entanto, o resultado é 2.2e-16, demostrando a falta de normalidade
+                            # a hipótese de distribuicao normal foi rejeitada 
 
 # media = 0------------------------------------------------------------------------------------------------------
 
@@ -523,10 +565,13 @@ mean(residuals(reg))
 
 #  multicolinearidade -------------------------------------------------------------------------------------
 
-vif(reg)
-
+vif(reg)  #VIF (Variance Inflation Factor)
+          # VIF mede a correlação da variável com todas as outras do modelo
 # genero \ orientacao problematica (se for maior que dois é problematico)
 
+
+
+save.image("myWorkSpace.RData") # facilita a criacao do rmd
 
 
 
